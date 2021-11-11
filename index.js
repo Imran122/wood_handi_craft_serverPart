@@ -21,8 +21,9 @@ async function run() {
         await client.connect();
         const database = client.db('IHandiCraftDB');
         const productsCollection = database.collection('ProductsList');
-        //colection for insert place order data
 
+        //colection for insert place order data
+        const orderCollection = database.collection('OrderList');
 
 
 
@@ -33,9 +34,24 @@ async function run() {
             res.send(products)
         });
 
+        //API for single data load
+        app.get('/products/:id', async (req, res) => {
+            const id = req.params.id;
 
+            const query = { _id: ObjectId(id) };
 
+            const product = await productsCollection.findOne(query);
+            res.json(product);
+        });
 
+        //API for submit place order
+        app.post('/orderlist', async (req, res) => {
+            const order = req.body;
+            order.createdAt = new Date();
+            const result = await orderCollection.insertOne(order)
+            console.log('hiot', order)
+            res.json(result)
+        });
 
         console.log('db connected');
     } finally {
