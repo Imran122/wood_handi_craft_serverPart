@@ -53,6 +53,23 @@ async function run() {
             res.json(result)
         });
 
+        //API for getting all order list data
+        app.get('/orderlist', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email }
+            const cursor = orderCollection.find(query);
+            const allOrder = await cursor.toArray();
+            res.send(allOrder)
+        });
+
+        //API for delete a order
+        app.delete('/orderlist/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await orderCollection.deleteOne(query);
+            res.json(result)
+        });
+
         console.log('db connected');
     } finally {
 
