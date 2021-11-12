@@ -25,7 +25,7 @@ async function run() {
         //colection for insert place order data
         const orderCollection = database.collection('OrderList');
 
-
+        const reviewCollection = database.collection('ReviewData')
 
         //GET APi to get data
         app.get('/products', async (req, res) => {
@@ -69,6 +69,25 @@ async function run() {
             const result = await orderCollection.deleteOne(query);
             res.json(result)
         });
+
+        //API for send review data
+        app.post('/reviews', async (req, res) => {
+            const review = req.body;
+
+            const result = await reviewCollection.insertOne(review)
+
+            res.json(result)
+        });
+
+        //GET APi to get data of all reviews
+        app.get('/reviews', async (req, res) => {
+            const cursor = reviewCollection.find({});
+            const reviews = await cursor.toArray();
+            res.send(reviews)
+        });
+
+
+
 
         console.log('db connected');
     } finally {
