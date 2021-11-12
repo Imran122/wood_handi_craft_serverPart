@@ -73,8 +73,30 @@ async function run() {
             console.log('hiot', order)
             res.json(result)
         });
+        //api for manage order to get all order list in admin dashboard
 
-        //API for getting all order list data
+        app.get('/adminAllOrder', async (req, res) => {
+            const cursor = orderCollection.find({});
+            const allOrder = await cursor.toArray();
+            res.send(allOrder)
+        });
+        //api for update status for a order pending to shiped
+        app.put('/orderlist/:id', async (req, res) => {
+            const id = req.params.id;
+            const updateOrder = req.body;
+            const filter = { _id: ObjectId(id) };
+            console.log(id);
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: {
+                    status: updateOrder.status,
+                },
+            };
+            const result = await orderCollection.updateOne(filter, updateDoc, options);
+            res.json(result)
+        });
+
+        //API for getting a users order list data
         app.get('/orderlist', async (req, res) => {
             const email = req.query.email;
             const query = { email: email }
