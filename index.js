@@ -26,6 +26,27 @@ async function run() {
         const orderCollection = database.collection('OrderList');
 
         const reviewCollection = database.collection('ReviewData')
+        //user collection db
+        const usersCollection = database.collection('users')
+
+
+        //checking user is admin or not from user db
+        app.get('/users/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email };
+            const user = await usersCollection.findOne(query);
+            let isAdmin = false;
+            if (user?.role === 'admin') {
+                isAdmin = true;
+            }
+            res.json({ admin: isAdmin });
+        })
+        //api for save product from admin dashboard
+        app.post('/products', async (req, res) => {
+            const product = req.body;
+            const result = await productsCollection.insertOne(product)
+            res.json(result)
+        });
 
         //GET APi to get data
         app.get('/products', async (req, res) => {
@@ -86,7 +107,30 @@ async function run() {
             res.send(reviews)
         });
 
+        //save email pass auth data to mongodb
+        app.post('/users', async (req, res) => {
+            const user = req.body;
+            const result = await usersCollection.insertOne(user)
+            res.json(result);
+        })
+        //save google data to mongodb
+        app.put('/users', async (req, res) => {
+            const user = req.body;
+            const filter = { email: user.email }
+            const options = { upsert: true };
+            const updateDoc = { $set: user };
+            const result = await usersCollection.updateOne(filter, updateDoc, options);
+            res.json(result);
+        })
 
+        //api for make admin
+        app.put('/users/admin', async (req, res) => {
+            const user = req.body;
+            const filter = { email: user.email }
+            const updateDoc = { $set: { role: 'admin' } };
+            const result = await usersCollection.updateOne(filter, updateDoc)
+            res.json(result);
+        })
 
 
         console.log('db connected');
