@@ -64,6 +64,17 @@ async function run() {
             const product = await productsCollection.findOne(query);
             res.json(product);
         });
+        //api for delete products from list and db
+        app.delete('/products/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await productsCollection.deleteOne(query);
+            res.json(result)
+        });
+
+
+
+
 
         //API for submit place order
         app.post('/orderlist', async (req, res) => {
