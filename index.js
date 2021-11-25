@@ -14,7 +14,8 @@ const ObjectId = require('mongodb').ObjectId;
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.uvy8c.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
-
+//stripe related stuff
+const stripe = require("stripe")(process.env.STRIPE_SECRET);
 
 async function run() {
     try {
@@ -52,7 +53,12 @@ async function run() {
         app.get('/products', async (req, res) => {
             const cursor = productsCollection.find({});
             const products = await cursor.toArray();
-            res.send(products)
+            const count = await cursor.count();
+            res.send({
+
+                count,
+                products
+            })
         });
 
         //API for single data load
@@ -116,6 +122,16 @@ async function run() {
             res.send(allOrder)
         });
 
+
+        //API for load a single order data to make payment
+        app.get('/payment/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) }
+            const result = await orderCollection.findOne(query);
+            res.json(result)
+        })
+
+
         //API for delete a order
         app.delete('/orderlist/:id', async (req, res) => {
             const id = req.params.id;
@@ -164,10 +180,22 @@ async function run() {
             const result = await usersCollection.updateOne(filter, updateDoc)
             res.json(result);
         })
+        //payment related work api
+        app.post('/create-payment-intent', async (req, res) => {
+            const paymentInfo = req.body;
+            const amount = paymentInfo * 100;
+            const paymentIntent = await stripe.paymentIntents.create({
+                currency: 'usd',
+                amount: amount,
+                payment_method_types: ['card']
+            });
+            res.json({ clientSecret: paymentIntent.client_secret })
+        })
 
 
         console.log('db connected');
-    } finally {
+    }
+    finally {
 
         //await client.close();
     }
